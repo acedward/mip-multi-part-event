@@ -79,11 +79,21 @@ Canonical-chain and reorganization handling remain part of the underlying event 
 
 ## Rationale
 
-The physical intent is the smallest existing boundary that resists a third party adding calls during transaction composition. Using it avoids a new on-chain package identifier. The prerequisite already defines event access and order, so repeating those mechanisms here would create two specifications for the same event stream.
+### Requirement
 
-Guaranteed placement is recommended because the whole guaranteed phase applies or produces no applied events. It is not mandatory because one fallible segment is also internally atomic: success returns its state and events, while failure returns neither. The important publisher rule is that every event in one package stays within one of those atomic phases. A mixed-phase package loses that property, even if the publisher regarded its events as separate messages.
+Applications need messages larger than the fixed 256-byte payload of one `Misc` event. Splitting a message across events supports application-defined message lengths within transaction limits.
 
-Explicit framing could support message boundaries within one intent or across intents, but it would add part indexes, counts, identifiers, and parser rules. Contract state would provide persistent assembly at the cost of state growth. A larger event would require a platform change. Those are different designs; this proposal intentionally uses the boundary the ledger already supplies.
+### Transport
+
+The physical intent is the smallest existing boundary that can group several circuit calls without allowing a third party to add calls during transaction composition. Using it as the package boundary avoids new on-chain part numbers, counts, or package identifiers, persistent contract state, and changes to the event size.
+
+### Security
+
+When all parts use one execution phase of the same physical intent, their events are applied together or not at all, including when several circuit calls emit them. A third party cannot inject additional parts into the sealed intent; another intent forms a separate package. This MIP does not define who may emit data from a contract or the mechanism that enforces that permission.
+
+### Rebuilding
+
+Calls within that phase execute in the intent's defined order, and matching events retain their emission order. Concatenating their full payloads in that order reconstructs the published message bytes, including any padding. Recovering the original unpadded length remains the adopting protocol's responsibility.
 
 ## Path to Active
 
