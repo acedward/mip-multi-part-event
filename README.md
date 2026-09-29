@@ -1,8 +1,8 @@
-# MIP-xxxx Multi-Part Event
+# MIP-xxxx Multipart Event
 
 ## Summary
 
-MIP-xxxx Multi-Part Event, cited by adopters as `mip-xxxx:multi-part[v1]` (short: `mip-xxxx`), lets a Midnight protocol publish an event larger than one `Misc` payload. It is an opt-in processing rule for an event the protocol already emits, not a new event: it defines no event name, no field and no bytes on chain. A protocol whose contracts emit `Misc` events named N states in its own specification that N follows `mip-xxxx:multi-part[v1]`; every reader then merges all N events one contract emitted from one intent of one transaction, in emission order, into one payload, and processes that payload exactly as it processes a normal N event. This repository, `compact-multi-segment-emit`, is its reference implementation.
+MIP-xxxx Multipart Event, cited by adopters as `mip-xxxx:multipart[v1]` (short: `mip-xxxx`), lets a Midnight protocol publish an event larger than one `Misc` payload. It is an opt-in processing rule for an event the protocol already emits, not a new event: it defines no event name, no field and no bytes on chain. A protocol whose contracts emit `Misc` events named N states in its own specification that N follows `mip-xxxx:multipart[v1]`; every reader then merges all N events one contract emitted from one intent of one transaction, in emission order, into one payload, and processes that payload exactly as it processes a normal N event. This repository, `compact-multi-segment-emit`, is its reference implementation.
 
 For example, if the protocol `mip-9931` emits `mip-9931:cool-beans[v1]` and opts in, an intent that holds three `mip-9931:cool-beans[v1]` events is one cool-beans event whose payload is their 768 bytes, and an intent that holds one is processed exactly as before.
 
@@ -10,7 +10,7 @@ For example, if the protocol `mip-9931` emits `mip-9931:cool-beans[v1]` and opts
 
 For the author of a protocol and its contracts. The library and `cmse` need Node 24; the repository's checks run in Docker.
 
-1. **Declare the opt-in in your specification.** For example: "Events named `mip-9931:cool-beans[v1]` follow `mip-xxxx:multi-part[v1]`." Your payload format must read correctly at any multiple of 256 bytes, because the last part is zero-padded: carry your own length, type or checksum if you need one. Never emit two independent N events from one contract in one intent: readers would merge them.
+1. **Declare the opt-in in your specification.** For example: "Events named `mip-9931:cool-beans[v1]` follow `mip-xxxx:multipart[v1]`." Your payload format must read correctly at any multiple of 256 bytes, because the last part is zero-padded: carry your own length, type or checksum if you need one. Never emit two independent N events from one contract in one intent: readers would merge them.
 
 2. **Emit your own event, once per part.** The standard has no Compact code of its own. The reference adopter, `contract-examples/emitter`, emits `example:message[v1]`:
 
@@ -101,7 +101,7 @@ For the author of a protocol and its contracts. The library and `cmse` need Node
 
 ## Spec
 
-**The rule.** A protocol P whose contracts emit `Misc` events named N opts in by stating in its own specification that N follows `mip-xxxx:multi-part[v1]` (or just `mip-xxxx`). Then, for every reader of P:
+**The rule.** A protocol P whose contracts emit `Misc` events named N opts in by stating in its own specification that N follows `mip-xxxx:multipart[v1]` (or just `mip-xxxx`). Then, for every reader of P:
 
 1. **Grouping.** All events named N that one contract emitted from one intent (one physical segment) of one included transaction form one package, in their emission order.
 2. **Merging.** The package's payload is the concatenation of the events' 256-byte payloads. A single event is a package of one part, so opting in changes nothing for single events.

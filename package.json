@@ -2,7 +2,7 @@
   "name": "compact-multi-segment-emit",
   "version": "0.1.0",
   "private": true,
-  "description": "Reference implementation of the multi-part rule for Midnight Misc events: a reader that merges one intent's events of an opted-in name into one package, a publisher that puts all parts of a package into one guaranteed-only intent, a public-indexer client and the `cmse verify` command.",
+  "description": "Reference implementation of the multipart rule for Midnight Misc events: a reader that merges one intent's events of an opted-in name into one package, a publisher that puts all parts of a package into one guaranteed-only intent, a public-indexer client and the `cmse verify` command.",
   "license": "Apache-2.0",
   "type": "module",
   "engines": {

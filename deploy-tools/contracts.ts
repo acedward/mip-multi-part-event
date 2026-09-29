@@ -25,7 +25,7 @@ export type ExampleName = "emitter" | "notice-board";
 /** Where an example's source, generated binding, keys and full key build live. */
 export interface ExampleProfile {
   readonly name: ExampleName;
-  /** The event name N the example's protocol opted into the multi-part rule. */
+  /** The event name N the example's protocol opted into the multipart rule. */
   readonly eventName: string;
   /** The emitting circuit. */
   readonly entryPoint: "emitPart";

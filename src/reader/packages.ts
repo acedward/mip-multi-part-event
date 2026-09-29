@@ -1,5 +1,5 @@
 /**
- * The reader of the multi-part rule: packages from events.
+ * The reader of the multipart rule: packages from events.
  *
  * A protocol opts an event name N into the rule for its contracts. For every configured
  * (contract, N) pair the reader:
@@ -25,7 +25,7 @@
 import { bytesEqual, bytesToHex, compareCodeUnits } from "./bytes.js";
 import { EVENT_LENGTH, eventName, eventNameText, NAME_LENGTH, restoreEventValue } from "./event.js";
 
-/** A (contract, N) pair whose protocol declared that N follows the multi-part rule. */
+/** A (contract, N) pair whose protocol declared that N follows the multipart rule. */
 export interface OptIn {
   /** Contract address: 64 lowercase hex characters. */
   readonly contract: string;

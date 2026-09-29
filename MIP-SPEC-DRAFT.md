@@ -1,6 +1,6 @@
 ---
 MIP: "xxxx"
-Title: Multi-Part Event (`mip-xxxx:multi-part[v1]`)
+Title: Multipart Event (`mip-xxxx:multipart[v1]`)
 Authors:
   - Edward Alvarado <edward.alvarado@midnight.foundation>
 Status: Draft
@@ -53,7 +53,7 @@ An **adopting protocol** opts an event name into this rule. A **publisher** emit
 The chain and contract address come from the deployed contract instance. The adopting protocol MUST declare:
 
 1. **Event name:** the exact value of the existing `Misc` `name` field, shared by every part.
-2. **Multipart rule:** the protocol's specification MUST state that it follows `mip-xxxx:multi-part[v1]`.
+2. **Multipart rule:** the protocol's specification MUST state that it follows `mip-xxxx:multipart[v1]`.
 
 This rule begins only after exact contract and event-name filtering of valid, decoded, applied events. If a protocol has not made that opt-in, this proposal has no effect on its events. Invalid envelopes, unsupported decoders, incomplete API responses, conflicting upstream deliveries, and unavailable history are outside this rule's input boundary.
 
@@ -79,11 +79,21 @@ Canonical-chain and reorganization handling remain part of the underlying event 
 
 ## Rationale
 
-The physical intent is the smallest existing boundary that resists a third party adding calls during transaction composition. Using it avoids a new on-chain package identifier. The prerequisite already defines event access and order, so repeating those mechanisms here would create two specifications for the same event stream.
+### Requirement
 
-Guaranteed placement is recommended because the whole guaranteed phase applies or produces no applied events. It is not mandatory because one fallible segment is also internally atomic: success returns its state and events, while failure returns neither. The important publisher rule is that every event in one package stays within one of those atomic phases. A mixed-phase package loses that property, even if the publisher regarded its events as separate messages.
+Applications need messages larger than the fixed 256-byte payload of one `Misc` event. Splitting a message across events supports application-defined message lengths within transaction limits.
 
-Explicit framing could support message boundaries within one intent or across intents, but it would add part indexes, counts, identifiers, and parser rules. Contract state would provide persistent assembly at the cost of state growth. A larger event would require a platform change. Those are different designs; this proposal intentionally uses the boundary the ledger already supplies.
+### Transport
+
+The physical intent is the smallest existing boundary that can group several circuit calls without allowing a third party to add calls during transaction composition. Using it as the package boundary avoids new on-chain part numbers, counts, or package identifiers, persistent contract state, and changes to the event size.
+
+### Security
+
+When all parts use one execution phase of the same physical intent, their events are applied together or not at all, including when several circuit calls emit them. A third party cannot inject additional parts into the sealed intent; another intent forms a separate package. This MIP does not define who may emit data from a contract or the mechanism that enforces that permission.
+
+### Rebuilding
+
+Calls within that phase execute in the intent's defined order, and matching events retain their emission order. Concatenating their full payloads in that order reconstructs the published message bytes, including any padding. Recovering the original unpadded length remains the adopting protocol's responsibility.
 
 ## Path to Active
 
@@ -121,47 +131,53 @@ Repeated equal bytes in a new intent or transaction form a new package. The tran
 
 ## Implementation
 
-No Midnight component change is required. A candidate reference implementation is available in [`acedward/compact-multi-part-event`](https://github.com/acedward/compact-multi-part-event). It provides publisher and reader libraries, contract examples, a CLI, and tests. The implementation intentionally uses guaranteed-only publication and its raw placement verifier enforces that narrower profile. Its raw-transcript decoder can enumerate both guaranteed and fallible logs. These components and the public examples are implementation evidence, not the normative definition.
+No Midnight component change is required. Implementation belongs in the adopting protocol and its contract, publisher, and reader tooling:
 
-On 2026-09-25, the reference implementation was exercised on Stagenet with genesis `0x2f76825abc239fecf6107c9df99016de57037b451ae57a4394b76c8cf53a9491`. The fresh contract was `27a8be750856ace6276eef6be2e456947c395364ae08f6cf2c1ace5dd319a2c8` and its event name was `example:message[v1]`.
+1. **Protocol declaration:** identify the existing event name and declare adoption as specified under Opting in. Any application encoding or interpretation of padding remains the protocol's responsibility.
+2. **Publisher and contract:** prepare the message as 256-byte parts and emit them under the opted-in name, in the intended order, within one execution phase of one physical intent. One or several circuit calls can emit the parts. For fallible publication, the caller confirms transaction inclusion and success of that phase before treating the package as published.
+3. **Reader:** obtain valid, decoded, applied events for the deployed contract and opted-in name. Group them by included transaction and physical intent, concatenate each full payload exactly once in ledger emission order, and deliver the resulting bytes to the application without trimming zeros.
 
-Transaction `3a4c54e93bb80ecc7574738e06fd82ef7f8ff3265a6bddc350c225bd92fafcdd` in block 618048 carried two guaranteed-only packages. Segment 5392 reconstructed one 256-byte part with SHA-256 `40aff2e9d2d8922e47afd4648e6967497158785fbd1da870e7110266bf944880`. Segment 45345 reconstructed three parts and 768 bytes with SHA-256 `f5d7cc3852a3ae6f9948a8a84062358c722e2c0415e1490615b2fa4185023ebf`. Those 768 bytes were exactly a 700-byte input, including its 17 trailing zero bytes, followed by 68 padding zero bytes. Transaction `dacd193039b14f8833a17c7964923de2c95dd18eaec5dcd62ac5166772553074` in block 618059 published the same 256 bytes in a new intent and produced a separate package.
-
-A wallet-free reader reproduced the bytes from the public indexer and found the raw transactions in the stated RPC blocks. At `2026-09-25T15:18:02Z`, RPC finalized height 618100 exceeded the inclusion heights and its hashes at the tested heights matched the indexer. Both services use the `shielded.tools` domain, so this is provider-trusted corroboration rather than an independent consensus or light-client proof.
-
-The live run did not test fallible-only or mixed-phase publication, multiple matching events from one call, third-party composition, reorganization, or retroactive opt-in. That Stagenet run therefore supplies no evidence for fallible-only or mixed-phase behavior.
+The [reference implementation](https://github.com/acedward/mip-multipart-event) provides example publisher and reader tooling. Its publisher supports guaranteed-only publication.
 
 ## Testing
 
-The following vectors are normative. They start after opt-in and exact contract and event-name filtering. Inputs are valid, decoded, applied events with their ledger emission order; a row may list them in a different delivery order to test normalization. `x*n` means `n` copies of octet `x`, and `||` means concatenation:
+The following vectors are normative. They begin after opt-in and exact contract and event-name filtering. Inputs are valid, decoded, applied events with a known ledger emission order. Unless stated otherwise, all events use one chain, contract, name, transaction `T1`, physical intent 7, and the guaranteed phase.
 
-```
-A = aa*256
-B = bb*255 || 00
-C = cc*256
-Z = 00*256
-```
+Each test payload is exactly 256 bytes:
 
-Unless stated otherwise, events use one chain, contract, name, transaction `T1`, and physical intent 7.
+- `A`: 256 bytes of `0xaa`.
+- `B`: 255 bytes of `0xbb`, followed by one `0x00` byte.
+- `C`: 256 bytes of `0xcc`.
+- `Z`: 256 bytes of `0x00`.
 
-| Case | Applied matching events | Required transport result |
-| --- | --- | --- |
-| Empty filtered input | none | no package |
-| All-zero part | `Z` | one part, payload `Z`, length 256 |
-| Trailing zero | `B` | one part, payload `B`; keep its final zero |
-| Guaranteed multipart | guaranteed `A`, then guaranteed `B` | one package, payload `A \|\| B`, length 512 |
-| Fallible success | fallible `C`, then fallible `B`, both applied | one package, payload `C \|\| B`, length 512 |
-| Fallible failure | no applied matching event from the failed phase | no package |
-| Same-group separate intentions | guaranteed `A` intended as message 1, then applied fallible `B` intended as message 2 | one package, payload `A \|\| B`; publisher violated the package-level single-phase requirement |
-| Mixed-phase failure | guaranteed `A`; fallible `B` was discarded and is absent | one package, payload `A`; publisher violated the package-level single-phase requirement and the reader does not infer `B` |
-| Upstream order | events delivered to the model as `B`, `A`, with ledger order `1`, `0` | one package, payload `A \|\| B` |
-| Equal distinct events | `A`, then `A` at two event positions | two parts, payload `A \|\| A` |
-| Multiple logs per call | one call emits `A`, then `C` | two parts, payload `A \|\| C` |
-| Two intents | intent 7 emits `A`; intent 8 emits `B` | two packages; never join them |
-| Repeated publication | `(T1, intent 7)` and `(T2, intent 7)` each emit `A` | two packages despite equal bytes |
-| No hidden framing | `A` and `C` were intended as separate messages in one intent | one package, payload `A \|\| C` |
+A conforming reader MUST reproduce the package groups, part counts, part orders, lengths, and bytes specified below. These vectors test reconstruction from applied events; they do not execute ledger state transitions or prove phase atomicity.
 
-The machine-readable corpus and independent model used while drafting are maintained with the proposal evidence. The model only groups already-applied events and checks exact bytes; it does not execute platform state transitions or prove fallible atomicity. A conforming reader MUST reproduce these package groups, part counts, part orders, lengths, and bytes. A publisher implementation MUST test the phase it supports. An implementation that supports fallible publication MUST also test fallible success, fallible failure, and the mixed-phase counterexample against its supported event implementation.
+### Reconstruction and ordering
+
+1. **Empty filtered input:** no matching events. Expected: no package.
+2. **All-zero part:** one event with payload `Z`. Expected: one single-part, 256-byte package containing `Z`.
+3. **Trailing zero:** one event with payload `B`. Expected: one single-part, 256-byte package containing `B`, including its final zero.
+4. **Upstream order:** events arrive as `B`, then `A`, but their ledger emission positions are 1 and 0 respectively. Expected: one two-part, 512-byte package containing `A` followed by `B`.
+5. **Equal distinct events:** two events at distinct ledger positions each contain `A`. Expected: one two-part, 512-byte package containing `A` followed by `A`; equal bytes do not remove an event.
+6. **Multiple logs per call:** one call emits `A`, then `C`. Expected: one two-part, 512-byte package containing `A` followed by `C`.
+
+### Package boundaries
+
+1. **Two intents:** intent 7 emits `A`; intent 8 emits `B` in the same transaction. Expected: two packages of one part and 256 bytes each, containing `A` and `B` respectively; never join them.
+2. **Repeated publication:** transaction `T1`, intent 7 and transaction `T2`, intent 7 each emit `A`. Expected: two packages of one part and 256 bytes each, despite equal payloads and intent numbers.
+3. **No hidden framing:** `A` and `C` were intended as separate messages but were emitted in that order in one group. Expected: one two-part, 512-byte package containing `A` followed by `C`.
+
+### Publication phases
+
+1. **Guaranteed multipart:** guaranteed events contain `A`, then `B`. Expected: one two-part, 512-byte package containing `A` followed by `B`.
+2. **Fallible success:** fallible events contain `C`, then `B`, and both are applied. Expected: one two-part, 512-byte package containing `C` followed by `B`.
+3. **Fallible failure:** the fallible phase failed, leaving no applied matching events. Expected: no package.
+4. **Same-group separate intentions:** guaranteed `A` was intended as message 1; applied fallible `B` was intended as message 2 in the same group. Expected: one two-part, 512-byte package containing `A` followed by `B`. The publisher violated the package-level single-phase requirement despite intending separate messages.
+5. **Mixed-phase failure:** guaranteed `A` was applied; fallible `B` was discarded and is absent. Expected: one single-part, 256-byte package containing `A`. The publisher violated the package-level single-phase requirement; the reader does not infer `B`.
+
+### Publisher execution checks
+
+A publisher implementation MUST test the phase it supports against its supported event implementation. An implementation that supports fallible publication MUST also test fallible success, fallible failure, and the mixed-phase counterexample. These execution checks establish that failed phases expose no applied parts; the reader vectors alone cannot establish that behavior.
 
 ## References (Optional)
 

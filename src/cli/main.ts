@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * `cmse verify`: read and verify packages of the multi-part rule from public data,
+ * `cmse verify`: read and verify packages of the multipart rule from public data,
  * without a wallet, proof server or compiler (see `./verify` for the three levels).
  *
  * @module
@@ -36,7 +36,7 @@ import {
   type VerifySource,
 } from "./verify.js";
 
-export const USAGE = `cmse verify — read and verify packages of the multi-part rule from public data
+export const USAGE = `cmse verify — read and verify packages of the multipart rule from public data
 (no wallet, proof server or compiler)
 
   cmse verify --contract <address> --name <event name> --tx <transaction hash> [--segment <n>]

@@ -1,5 +1,5 @@
 /**
- * The reader of the multi-part rule, for every reader of an adopting protocol: packages
+ * The reader of the multipart rule, for every reader of an adopting protocol: packages
  * from events (group per intent, order, merge), width restoration, and the placement
  * check against the raw transaction. No wallet, no network access.
  *
