@@ -1,6 +1,6 @@
 ---
 MIP: "xxxx"
-Title: Multipart Event (`mip-xxxx:multipart[v1]`)
+Title: Multipart Event
 Authors:
   - Edward Alvarado <edward.alvarado@midnight.foundation>
 Status: Draft
@@ -178,12 +178,6 @@ A conforming reader MUST reproduce the package groups, part counts, part orders,
 ### Publisher execution checks
 
 A publisher implementation MUST test the phase it supports against its supported event implementation. An implementation that supports fallible publication MUST also test fallible success, fallible failure, and the mixed-phase counterexample. These execution checks establish that failed phases expose no applied parts; the reader vectors alone cannot establish that behavior.
-
-## References (Optional)
-
-- [MIP process](https://github.com/midnightntwrk/midnight-improvement-proposals/blob/main/mips/mip-0001-mip-process.md)
-- [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119)
-- [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174)
 
 ## Acknowledgements
 
