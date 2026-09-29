@@ -1,5 +1,5 @@
 /**
- * Wallet-free verification of packages of the multi-part rule, for one configured
+ * Wallet-free verification of packages of the multipart rule, for one configured
  * (contract, event name N) and its emitting circuit, in three levels:
  *
  * - Level 1, the package: the contract's `Misc` events named N, grouped per intent

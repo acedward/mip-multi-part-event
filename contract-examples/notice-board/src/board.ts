@@ -1,5 +1,5 @@
 /**
- * Client for the notice-board example, a second adopter of the multi-part rule with
+ * Client for the notice-board example, a second adopter of the multipart rule with
  * state of its own. Its protocol emits notices as `Misc` events named
  * `notice-board:notice[v1]` and declares that this name follows the rule; its notice
  * format is a 4-byte big-endian length, the UTF-8 text, then zero padding, which reads
@@ -29,7 +29,7 @@ import type { OptIn, PlacementTarget } from "compact-multi-segment-emit/reader";
 
 import { Contract, ledger as boardLedger, pureCircuits } from "../managed/contract/index.js";
 
-/** The board protocol's event name, opted into the multi-part rule. */
+/** The board protocol's event name, opted into the multipart rule. */
 export const NOTICE_EVENT = "notice-board:notice[v1]";
 
 /** The board's emitting circuit. */

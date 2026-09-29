@@ -2,7 +2,7 @@
  * Off-chain helper for the example access control `EmitterWhitelist.compact`: the
  * commitment the constructor stores, and the witness that answers `emitterSecret`.
  *
- * The access control is not part of the multi-part rule. It lets one emitter publish,
+ * The access control is not part of the multipart rule. It lets one emitter publish,
  * and it ranks below the contract's maintenance authority, which can remove every
  * circuit and install new ones (for example an `emitPart` without the check). A reader
  * who trusts events because only the whitelisted secret can emit also trusts whoever

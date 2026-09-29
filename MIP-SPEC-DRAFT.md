@@ -1,6 +1,6 @@
 ---
 MIP: "xxxx"
-Title: Multi-Part Event (`mip-xxxx:multi-part[v1]`)
+Title: Multipart Event (`mip-xxxx:multipart[v1]`)
 Authors:
   - Edward Alvarado <edward.alvarado@midnight.foundation>
 Status: Draft
@@ -53,7 +53,7 @@ An **adopting protocol** opts an event name into this rule. A **publisher** emit
 The chain and contract address come from the deployed contract instance. The adopting protocol MUST declare:
 
 1. **Event name:** the exact value of the existing `Misc` `name` field, shared by every part.
-2. **Multipart rule:** the protocol's specification MUST state that it follows `mip-xxxx:multi-part[v1]`.
+2. **Multipart rule:** the protocol's specification MUST state that it follows `mip-xxxx:multipart[v1]`.
 
 This rule begins only after exact contract and event-name filtering of valid, decoded, applied events. If a protocol has not made that opt-in, this proposal has no effect on its events. Invalid envelopes, unsupported decoders, incomplete API responses, conflicting upstream deliveries, and unavailable history are outside this rule's input boundary.
 
@@ -121,7 +121,7 @@ Repeated equal bytes in a new intent or transaction form a new package. The tran
 
 ## Implementation
 
-No Midnight component change is required. A candidate reference implementation is available in [`acedward/compact-multi-part-event`](https://github.com/acedward/compact-multi-part-event). It provides publisher and reader libraries, contract examples, a CLI, and tests. The implementation intentionally uses guaranteed-only publication and its raw placement verifier enforces that narrower profile. Its raw-transcript decoder can enumerate both guaranteed and fallible logs. These components and the public examples are implementation evidence, not the normative definition.
+No Midnight component change is required. A candidate reference implementation is available in [`acedward/mip-multipart-event`](https://github.com/acedward/mip-multipart-event). It provides publisher and reader libraries, contract examples, a CLI, and tests. The implementation intentionally uses guaranteed-only publication and its raw placement verifier enforces that narrower profile. Its raw-transcript decoder can enumerate both guaranteed and fallible logs. These components and the public examples are implementation evidence, not the normative definition.
 
 On 2026-09-25, the reference implementation was exercised on Stagenet with genesis `0x2f76825abc239fecf6107c9df99016de57037b451ae57a4394b76c8cf53a9491`. The fresh contract was `27a8be750856ace6276eef6be2e456947c395364ae08f6cf2c1ace5dd319a2c8` and its event name was `example:message[v1]`.
 

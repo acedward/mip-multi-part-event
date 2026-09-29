@@ -1,5 +1,5 @@
 /**
- * The publisher of the multi-part rule, for adopters' clients: split a payload into
+ * The publisher of the multipart rule, for adopters' clients: split a payload into
  * 256-byte parts, run the adopter's emitting circuit once per part against one pinned
  * state, put all parts of a package into ONE guaranteed-only intent (several packages
  * per transaction, one intent each), check each package's intent at every stage, and

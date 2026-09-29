@@ -5,7 +5,7 @@ import "../whitelist/EmitterWhitelist";
 
 // Second adopter: a notice board with state of its own. Its (example) protocol emits
 // notices as Misc events named "notice-board:notice[v1]" and declares that this name
-// follows the multi-part rule.
+// follows the multipart rule.
 //
 // emitPart only checks the whitelist and emits: it never writes the board's state, so
 // every part of a package runs from the same pre-state. The board's state changes

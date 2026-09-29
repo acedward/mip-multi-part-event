@@ -4,7 +4,7 @@ import CompactStandardLibrary;
 import "../whitelist/EmitterWhitelist";
 
 // Reference adopter. Its (example) protocol emits Misc events named
-// "example:message[v1]" and declares that this name follows the multi-part rule, so
+// "example:message[v1]" and declares that this name follows the multipart rule, so
 // readers merge all such events of one intent into one message payload.
 //
 // emitPart checks the whitelist, then emits exactly one event. It writes no ledger
